@@ -1,0 +1,51 @@
+services:
+  web:
+    build:
+      dockerfile: ./Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - test_db
+    environment:
+      OPENAI_API_KEY: FILL_ME
+      DATABASE_URL: postgresql://candidategpt:candidategpt@db:5432/candidategpt
+      TEST_DB_URL: postgresql://candidategpt_test:candidategpt_test@test_db:5433/candidategpt_test
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    networks:
+      - app-network
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: candidategpt
+      POSTGRES_PASSWORD: candidategpt
+      POSTGRES_DB: candidategpt
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  test_db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: candidategpt_test
+      POSTGRES_PASSWORD: candidategpt_test
+      POSTGRES_DB: candidategpt_test
+    ports:
+      - "5433:5433"
+    volumes:
+      - test-db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+volumes:
+  db-data:
+  test-db-data:
+
+networks:
+  app-network:
+    driver: bridge
+

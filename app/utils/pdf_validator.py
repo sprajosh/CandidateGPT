@@ -13,6 +13,7 @@ async def validate_pdf(file: UploadFile):
         if pdf_document.page_count == 0:
             raise HTTPException(status_code=400, detail="PDF has no pages.")
 
+        file.file.seek(0)
         pdf_document.close()
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid PDF file.")
