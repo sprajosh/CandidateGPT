@@ -1,7 +1,7 @@
 import tempfile
 
 from fastapi import UploadFile
-from langchain.chains import ConversationalRetrievalChain
+from langchain.chains import RetrievalQA
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.vectorstores import Chroma
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
@@ -25,7 +25,7 @@ class ResumeExtractor:
         embeddings = OpenAIEmbeddings()
         pdfsearch = Chroma.from_documents(documents, embeddings)
 
-        self.chain = ConversationalRetrievalChain.from_llm(
+        self.chain = RetrievalQA.from_llm(
             ChatOpenAI(temperature=0, model=MODEL),
             retriever=pdfsearch.as_retriever(search_kwargs={"k": 1}),
             return_source_documents=True,
@@ -44,15 +44,13 @@ class ResumeExtractor:
         Sample Response: Python, Javascript, AWS
         """
         try:
-            chain_response = self.chain(
-                {"question": PROMPT, "chat_history": []}, return_only_outputs=True
-            )
+            chain_response = self.chain({"query": PROMPT})
         except Exception as e:
             print(e)
             return []
 
         try:
-            skills = chain_response["answer"].split(", ")
+            skills = chain_response["result"].split(", ")
             return skills
         except Exception as e:
             print(e)
@@ -71,15 +69,13 @@ class ResumeExtractor:
         Sample Response: Siddharth Prajosh
         """
         try:
-            chain_response = self.chain(
-                {"question": PROMPT, "chat_history": []}, return_only_outputs=True
-            )
+            chain_response = self.chain({"query": PROMPT})
         except Exception as e:
             print(e)
             return ""
 
         try:
-            name = chain_response["answer"].strip('"')
+            name = chain_response["result"].strip('"')
             return name
         except Exception as e:
             print(e)
@@ -95,15 +91,13 @@ class ResumeExtractor:
         Sample Response: 8V0Z8@example.com
         """
         try:
-            chain_response = self.chain(
-                {"question": PROMPT, "chat_history": []}, return_only_outputs=True
-            )
+            chain_response = self.chain({"query": PROMPT})
         except Exception as e:
             print(e)
             return ""
 
         try:
-            email = chain_response["answer"].strip('"')
+            email = chain_response["result"].strip('"')
             return email
         except Exception as e:
             print(e)
